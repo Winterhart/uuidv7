@@ -1,0 +1,27 @@
+# clangd config — UUIDv7 C library.
+
+CompileFlags:
+  CompilationDatabase: build
+  Add:
+    - -Wall
+    - -Wextra
+
+Index:
+  # Index libc headers for fast jumps into system declarations.
+  StandardLibrary: Yes
+
+Diagnostics:
+  ClangTidy:
+    # Fast checks on every keystroke; full set on save.
+    FastCheckFilter: Strict
+  # Enforces minimal includes — every header include is a consumer tax.
+  UnusedIncludes: Strict
+  # Off: too many false positives in C.
+  MissingIncludes: None
+
+InlayHints:
+  ParameterNames: Yes
+  Designators: Yes
+
+Hover:
+  ShowAKA: Yes

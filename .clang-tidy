@@ -1,0 +1,40 @@
+# clang-tidy config — UUIDv7 C library. Strict on purpose.
+Checks: >
+  -*,
+  clang-analyzer-*,
+  bugprone-*,
+  cert-*,
+  concurrency-*,
+  portability-*,
+  readability-*,
+  -bugprone-easily-swappable-parameters,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-isolate-declaration,
+  -readability-magic-numbers,
+  -readability-else-after-return
+
+CheckOptions:
+  # Idiomatic C naming, enforced: types and functions lower_case,
+  # macros and enum constants UPPER_CASE.
+  - key: readability-identifier-naming.FunctionCase
+    value: lower_case
+  - key: readability-identifier-naming.StructCase
+    value: lower_case
+  - key: readability-identifier-naming.TypeCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumCase
+    value: lower_case
+  - key: readability-identifier-naming.EnumConstantCase
+    value: UPPER_CASE
+  - key: readability-identifier-naming.MacroCase
+    value: UPPER_CASE
+
+# Lint only project headers, never system ones.
+HeaderFilterRegex: '(^|/)(include|src)/'
+
+# Applied fix-its follow .clang-format.
+FormatStyle: file
+
+# Escalation to errors is a CI decision; locally: loud but not blocking.
+WarningsAsErrors: ''

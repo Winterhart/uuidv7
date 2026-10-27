@@ -1,0 +1,21 @@
+{
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "default",
+      "displayName": "Homebrew LLVM (macOS)",
+      "description": "Use Homebrew's clang so the toolchain matches the Homebrew LLVM clang-tidy that `make tidy` runs. This avoids the macOS dual-toolchain mismatch where Apple-Clang compile flags don't expose system headers to Homebrew clang-tidy.",
+      "binaryDir": "${sourceDir}/build",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "default",
+      "configurePreset": "default"
+    }
+  ]
+}

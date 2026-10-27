@@ -1,0 +1,17 @@
+# CMake out-of-source build directory
+/build/
+
+# Generated compile database (lives in build/ now)
+/compile_commands.json
+
+# Stray build artifacts from any non-CMake builds
+/hello
+/hello.dSYM
+*.o
+*.obj
+
+# clangd index cache (machine-local, large)
+/.cache/
+
+# macOS / editor noise
+.DS_Store

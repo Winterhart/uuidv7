@@ -31,3 +31,53 @@ Implementations SHOULD utilize UUIDv7 instead of UUIDv1 and UUIDv6 if possible.
 ```
 
 https://www.rfc-editor.org/info/rfc9562/#name-uuid-version-7
+
+## Build and test
+
+Portable across Unix systems (macOS, Linux). Prerequisites:
+
+- CMake >= 3.21 and `make`
+- A C11 compiler (clang or gcc)
+- `pkg-config`
+- [Criterion](https://github.com/Snaipe/Criterion) for the test suite, installed
+  from your system package manager (Criterion is not packaged in ConanCenter
+  or vcpkg; system packages are its designed distribution channel):
+  - macOS: `brew install criterion`
+  - Debian/Ubuntu: `apt install libcriterion-dev`
+  - Arch: `pacman -S criterion`
+  - Nix: `nix-shell -p criterion`
+
+Build and run the tests:
+
+```
+make test
+```
+
+The configure step picks a preset per machine: on macOS it pins Homebrew's
+clang so the generated compile database matches the Homebrew clang-tidy run
+by `make tidy`; on other systems it uses the compiler from the environment.
+
+## Packaging (Conan)
+
+The library is also a Conan package:
+
+```
+conan profile detect --force   # once per machine: detect local toolchain
+conan create .                 # build package + run the consumer smoke test
+```
+
+`conan create` runs `test_package/`, a small consumer project that links the
+packaged library from the Conan cache and verifies the RFC 9562 Appendix A.6
+golden vector end to end — testing the *artifact*, not the source tree. After
+it succeeds, any project can depend on UUIDv7:
+
+```
+conan install --requires=uuidv7/0.1
+```
+
+and in CMake:
+
+```cmake
+find_package(UUIDv7 REQUIRED)
+target_link_libraries(myapp PRIVATE UUIDv7::UUIDv7)
+```

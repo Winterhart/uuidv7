@@ -3,12 +3,17 @@
   "configurePresets": [
     {
       "name": "default",
+      "displayName": "Portable (Unix)",
+      "description": "Portable configure: use whatever C11 compiler the environment provides. Works on Linux and macOS alike.",
+      "binaryDir": "${sourceDir}/build"
+    },
+    {
+      "name": "macos-homebrew-llvm",
+      "inherits": "default",
       "displayName": "Homebrew LLVM (macOS)",
-      "description": "Use Homebrew's clang so the toolchain matches the Homebrew LLVM clang-tidy that `make tidy` runs. This avoids the macOS dual-toolchain mismatch where Apple-Clang compile flags don't expose system headers to Homebrew clang-tidy.",
-      "binaryDir": "${sourceDir}/build",
+      "description": "Pin Homebrew's clang so build/compile_commands.json matches the Homebrew clang-tidy that `make tidy` runs (avoids the macOS dual-toolchain mismatch). macOS only: the Makefile selects this preset via uname on Darwin; on other Unix systems use the `default` preset.",
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_C_COMPILER": "/opt/homebrew/opt/llvm/bin/clang"
       }
     }
   ],
@@ -16,6 +21,10 @@
     {
       "name": "default",
       "configurePreset": "default"
+    },
+    {
+      "name": "macos-homebrew-llvm",
+      "configurePreset": "macos-homebrew-llvm"
     }
   ]
 }

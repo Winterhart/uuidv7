@@ -8,20 +8,27 @@
 #include "UUIDv7.h"
 
 #include <stdint.h>
+#include <stdio.h>
 
-static const char allHexChar[17] = "0123456789ABCDEF";
-// helper function takes a raw uint8 to nibble one and two 69 -> 45
-static void
-nibble_map(const uint8_t *source, char *nibbleZero, char *nibbleOne) {
+static const char HEX_CHAR[17] = "0123456789ABCDEF";
+
+// helper function takes a raw uint8 to nibble one and two e.g. 69 -> 45
+static void nibble_map(const uint8_t *source, char *nZero, char *nOne) {
     // map the hex to char map
-    *nibbleZero = allHexChar[*source >> 4];
-    *nibbleOne = allHexChar[*source & 15];
+    *nZero = HEX_CHAR[(unsigned)*source >> 4U];
+    *nOne = HEX_CHAR[(unsigned)*source & 0xFU];
 }
 
 uuidv7_error uuidv7_to_string(const uuidv7 *val, char *buf) {
     // no NULL ptr
     if (val == 0 || buf == 0) {
         return UUIDV7_ERR_NULL_PTR;
+    }
+
+    // RFC requirements
+    if (((unsigned)val->ver_rand_a[0] >> 4U) != 0x7 ||
+        ((unsigned)val->var_rand_b[0] >> 6U) != 0x2) {
+        return UUIDV7_ERR_INVALID;
     }
 
     nibble_map(&val->unix_ts_ms[0], &buf[0], &buf[1]);

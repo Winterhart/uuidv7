@@ -54,7 +54,7 @@ if(UUIDV7_BUILD_TESTS)
 
     # Register the executable with CTest: "a test is a process; exit code is
     # truth."
-    add_test(NAME uuidv7_tests COMMAND uuidv7_tests)
+    add_test(NAME uuidv7_tests COMMAND uuidv7_tests --verbose)
 endif()
 
 # ---- Install ----------------------------------------------------------------

@@ -37,7 +37,7 @@ configure:
 
 # Build then run the test suite through CTest.
 test: all
-	ctest --test-dir $(BUILD) --output-on-failure
+	ctest --test-dir $(BUILD) --verbose --output-on-failure
 
 # Run clang-tidy across the project (sources only; headers are checked via the
 # .c/.cpp translation units that include them). Requires `make configure` first.

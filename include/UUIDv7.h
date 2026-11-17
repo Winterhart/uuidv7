@@ -11,12 +11,14 @@
 #define UUIDV7_H
 
 #include <stdint.h>
+
 /* Max len of uuidv7 as a string */
 #define UUIDV7_STRING_LEN 37
 
-/*
- * uuidv7 main struct
- */
+/* Max len of entropy */
+#define UUIDV7_ENTROPY_SIZE_LEN 10
+
+/* uuidv7 main struct */
 typedef struct {
     uint8_t unix_ts_ms[6]; /** 48-bit timestamp ms */
     uint8_t ver_rand_a[2]; /** starts with ver 4-bit version then 12

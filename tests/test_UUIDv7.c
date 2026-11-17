@@ -29,19 +29,19 @@
  */
 
 const char zero_buff[UUIDV7_STRING_LEN] = {0};
+static const uuidv7 RFC_A6_DATA = {
+    .unix_ts_ms = {0x01, 0x7F, 0x22, 0xE2, 0x79, 0xB0},
+    .ver_rand_a = {0x7C, 0xC3},
+    .var_rand_b = {0x98, 0xC4, 0xDC, 0x0C, 0x0C, 0x07, 0x39, 0x8F},
+};
 Test(uuidv7, string_len) {
     cr_assert_eq(UUIDV7_STRING_LEN, 37, "Must be 37 length");
 }
 
 // RFC A6
 Test(uuidv7, golden_rfc_9562_a6) {
-    const uuidv7 data = {
-        .unix_ts_ms = {0x01, 0x7F, 0x22, 0xE2, 0x79, 0xB0},
-        .ver_rand_a = {0x7C, 0xC3},
-        .var_rand_b = {0x98, 0xC4, 0xDC, 0x0C, 0x0C, 0x07, 0x39, 0x8F},
-    };
     char buff[UUIDV7_STRING_LEN] = {0};
-    cr_assert_eq(uuidv7_to_string(&data, buff), UUIDV7_OK);
+    cr_assert_eq(uuidv7_to_string(&RFC_A6_DATA, buff), UUIDV7_OK);
     cr_log(CR_LOG_INFO, "Got UUID string: %s", buff);
     cr_assert_str_eq(buff, "017F22E2-79B0-7CC3-98C4-DC0C0C07398F");
 }
@@ -70,6 +70,29 @@ Test(uuidv7, uuid_to_string_err_nul_val) {
     cr_assert_arr_eq(buff, zero_buff, UUIDV7_STRING_LEN);
 }
 
+// non empty buff gets overwritten
+Test(uuidv7, uuid_to_string_non_empty_buff) {
+    char buff[UUIDV7_STRING_LEN];
+    memset(buff, 0xFF, sizeof(buff));
+    const uuidv7_error err = uuidv7_to_string(&RFC_A6_DATA, buff);
+    cr_assert_eq(err, UUIDV7_OK);
+    cr_assert_str_eq(buff, "017F22E2-79B0-7CC3-98C4-DC0C0C07398F");
+}
+
+// NUL PTR does not touch buff
+Test(uuidv7, uuid_to_string_nul_val_dont_change_buf) {
+    char buff[UUIDV7_STRING_LEN];
+    memset(buff, 0xFF, sizeof(buff));
+
+    // clean buff to compare
+    char untouch_buff[UUIDV7_STRING_LEN];
+    memset(untouch_buff, 0xFF, sizeof(untouch_buff));
+
+    const uuidv7_error err = uuidv7_to_string(NULL, buff);
+    cr_assert_eq(err, UUIDV7_ERR_NULL_PTR);
+    cr_assert_arr_eq(untouch_buff, buff, sizeof(untouch_buff));
+}
+
 Test(uuidv7, uuid_to_string_err_invalid_v8) {
     uuidv7 data = {
         .unix_ts_ms = {0x01, 0xA1, 0xBC, 0x50, 0x8C, 0xF0},
@@ -95,28 +118,3 @@ Test(uuidv7, uuid_to_string_err_invalid_var_b) {
     // Array are not touch on error
     cr_assert_arr_eq(buff, zero_buff, UUIDV7_STRING_LEN);
 }
-
-/* ---------------------------------------------------------------------------
- *
- * 2. Error contract: NULL val must return UUIDV7_ERR_NULL_PTR.
- *
- * 3. Error contract: NULL buf must return UUIDV7_ERR_NULL_PTR.
- *
- * 4. Error writes nothing: fill buf with 0xFF, call with NULL val, assert
- *    every one of the 37 bytes is still 0xFF afterwards.
- *
- * 5. All slots written: fill buf with 0xFF, valid call, assert no 0xFF
- *    survives anywhere in the buffer (the output alphabet — hex chars,
- *    dashes, NUL — can never contain 0xFF).
- *
- * Criterion vocabulary you will need:
- *   Test(suite, name)              — declares + auto-registers a test
- *   cr_assert_eq(a, b, "fmt", ...) — assert equality, fatal on failure
- *   cr_assert_str_eq(a, b)         — compare strings by content
- *
- * Two traps to remember from our lessons:
- *   - The project compiles with -Wconversion: comparing a char against
- *     0xFF wants an (unsigned char) cast, not a raw comparison.
- *   - memset lives in <string.h>.
- * -------------------------------------------------------------------------
- */

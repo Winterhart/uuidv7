@@ -29,7 +29,7 @@ add_compile_options(
 
 # ---- Targets ---------------------------------------------------------------
 # Add new executables/libraries here. Each .c/.cpp gets its own entry.
-add_library(UUIDv7 src/UUIDv7.c)
+add_library(UUIDv7 src/UUIDv7.c src/platform.c)
 target_include_directories(UUIDv7 PUBLIC include)
 # C++ target
 # add_executable(hello_cpp hello.cpp)
@@ -49,7 +49,7 @@ if(UUIDV7_BUILD_TESTS)
     # Any top-level CMakeLists with tests calls this once.
     enable_testing()
 
-    add_executable(uuidv7_tests tests/test_UUIDv7.c)
+    add_executable(uuidv7_tests tests/test_UUIDv7.c tests/test_platform.c)
     target_link_libraries(uuidv7_tests PRIVATE UUIDv7 PkgConfig::CRITERION)
 
     # Register the executable with CTest: "a test is a process; exit code is

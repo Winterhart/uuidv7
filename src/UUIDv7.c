@@ -7,8 +7,11 @@
  */
 #include "UUIDv7.h"
 
+#include "platform.h"
+
 #include <stdint.h>
 #include <stdio.h>
+#include <unistd.h>
 
 static const char HEX_CHAR[17] = "0123456789ABCDEF";
 
@@ -57,6 +60,19 @@ uuidv7_error uuidv7_to_string(const uuidv7 *val, char *buf) {
 }
 
 uuidv7_error uuidv7_new(uuidv7 *out) {
-    // todo
+    if (out == 0) {
+        return UUIDV7_ERR_NULL_PTR;
+    }
+
+    // get entropy
+    uint8_t entropy_buff[UUIDV7_ENTROPY_SIZE_LEN] = {0};
+    const uuidv7_error err = uuidv7_get_entropy(entropy_buff);
+
+    if (err != UUIDV7_OK) {
+        return err;
+    }
+
+    // get timestamp
+
     return UUIDV7_OK;
 }

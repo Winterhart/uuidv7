@@ -2,8 +2,6 @@
  * UUIDv7 - RFC 9562
  * Copyright (c) 2026 Farfatech Inc.
  * UUIDv7 implementation
- *
- * https://www.rfc-editor.org/info/rfc9562
  */
 
 /* Allow to unhide the getentropy and clock */

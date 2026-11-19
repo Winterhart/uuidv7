@@ -73,10 +73,10 @@ uuidv7_error uuidv7_new(uuidv7 *out) {
     }
 
     // entropy mapping
-    out->ver_rand_a[0] = (entropy_buff[0] & 0x0FU) | 0x70;
+    out->ver_rand_a[0] = (entropy_buff[0] & 0x0FU) | 0x70U;
     out->ver_rand_a[1] = entropy_buff[1];
 
-    out->var_rand_b[0] = (entropy_buff[2] & 0x3FU) | 0x80;
+    out->var_rand_b[0] = (entropy_buff[2] & 0x3FU) | 0x80U;
     out->var_rand_b[1] = entropy_buff[3];
     out->var_rand_b[2] = entropy_buff[4];
     out->var_rand_b[3] = entropy_buff[5];
@@ -102,7 +102,7 @@ uuidv7_error uuidv7_new(uuidv7 *out) {
     out->unix_ts_ms[2] = (uint8_t)(clock_ms >> 24U);
     out->unix_ts_ms[3] = (uint8_t)(clock_ms >> 16U);
     out->unix_ts_ms[4] = (uint8_t)(clock_ms >> 8U);
-    out->unix_ts_ms[5] = (uint8_t)(clock_ms >> 0);
+    out->unix_ts_ms[5] = (uint8_t)(clock_ms >> 0U);
 
     return UUIDV7_OK;
 }

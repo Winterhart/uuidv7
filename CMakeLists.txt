@@ -37,9 +37,9 @@ target_include_directories(UUIDv7 PUBLIC include)
 
 # ---- Tests -----------------------------------------------------------------
 # The suite needs Criterion, discovered via pkg-config — the distribution
-# channel Criterion is designed for (apt / brew / pacman / nix). Packaging
-# builds (conan create) pass -DUUIDV7_BUILD_TESTS=OFF so the machine building
-# the package does not need Criterion installed.
+# channel Criterion is designed for (apt / brew / pacman / nix). Pass
+# -DUUIDV7_BUILD_TESTS=OFF to skip the suite (e.g. on a packaging machine
+# that does not have Criterion installed).
 option(UUIDV7_BUILD_TESTS "Build the UUIDv7 test suite (needs Criterion)" ON)
 
 if(UUIDV7_BUILD_TESTS)
@@ -58,8 +58,8 @@ if(UUIDV7_BUILD_TESTS)
 endif()
 
 # ---- Install ----------------------------------------------------------------
-# The "you as a package" half: what `cmake --install` (and conan create via
-# conanfile.py) delivers to a consumer — the static lib plus the header.
+# The "you as a package" half: what `cmake --install` delivers to a
+# consumer — the static lib plus the header.
 include(GNUInstallDirs)
 install(TARGETS UUIDv7
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}

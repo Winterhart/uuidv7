@@ -2,14 +2,15 @@
  * UUIDv7 - RFC 9562
  * Copyright (c) 2026 Farfatech Inc.
  * Unit tests for the UUIDv7 library.
- *
- * YOUR assignment: the five tests described below. The version this file
- * replaces is retired from the working tree but preserved in git history
- * (commit 1d23202) — compare with it only AFTER you have written your own.
- *
- * Run with `make test`.
  */
+
+/* Feature-test macros: tests are POSIX-tier. */
+#define _POSIX_C_SOURCE 200809L // NOLINT
+
 #include "UUIDv7.h"
+
+#include <inttypes.h>
+#include <time.h>
 
 #include <criterion/criterion.h>
 
@@ -126,4 +127,43 @@ Test(uuidv7, uuid_to_string_err_invalid_var_b) {
     cr_assert_eq(err, UUIDV7_ERR_INVALID);
     // Array are not touch on error
     cr_assert_arr_eq(buff, zero_buff, UUIDV7_STRING_LEN);
+}
+
+/* Performance smoke test + report */
+Test(uuidv7, uuid_new_basic_perf) {
+    const int max_loop = 100000;
+    const uint64_t ns = 1000000000;
+    /* Warm-up initialize kernel state. */
+    uuidv7 warmup = {0};
+    cr_assert_eq(uuidv7_new(&warmup), UUIDV7_OK);
+
+    uint8_t sink = 0;
+    struct timespec t0;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    for (int i = 0; i < max_loop; i++) {
+        uuidv7 data = {0};
+        const uuidv7_error err = uuidv7_new(&data);
+        cr_assert_eq(err, UUIDV7_OK);
+        sink ^= data.var_rand_b[0];
+    }
+    struct timespec t1;
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+
+    /* Normalize in nanoseconds first, subtract once handles. */
+    const uint64_t start_ns = ((uint64_t)t0.tv_sec * ns) + (uint64_t)t0.tv_nsec;
+    const uint64_t end_ns = ((uint64_t)t1.tv_sec * ns) + (uint64_t)t1.tv_nsec;
+    const uint64_t ela_ns = end_ns - start_ns;
+    const uint64_t per_uuid_ns = ela_ns / (uint64_t)max_loop;
+    const uint64_t uuid_per_sec = ela_ns != 0 ? max_loop * ns / ela_ns : 0;
+
+    cr_log(CR_LOG_INFO,
+           "perf new: %" PRIu64 " ns total, %" PRIu64 " ns/uuid, %" PRIu64
+           " uuid/s (sink=%u)",
+           ela_ns,
+           per_uuid_ns,
+           uuid_per_sec,
+           sink);
+
+    /* Smoke bound: fires only on pathological (>=1000x) regressions. */
+    cr_assert_lt(per_uuid_ns, UINT64_C(1000000));
 }

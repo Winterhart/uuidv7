@@ -5,7 +5,7 @@
  */
 #include "UUIDv7.h"
 
-#include <_inttypes.h>
+#include <inttypes.h>
 #include <unistd.h>
 
 #include <criterion/criterion.h>

@@ -154,7 +154,8 @@ Test(uuidv7, uuid_new_basic_perf) {
     const uint64_t end_ns = ((uint64_t)t1.tv_sec * ns) + (uint64_t)t1.tv_nsec;
     const uint64_t ela_ns = end_ns - start_ns;
     const uint64_t per_uuid_ns = ela_ns / (uint64_t)max_loop;
-    const uint64_t uuid_per_sec = ela_ns != 0 ? max_loop * ns / ela_ns : 0;
+    const uint64_t uuid_per_sec =
+        ela_ns != 0 ? (uint64_t)max_loop * ns / ela_ns : 0;
 
     cr_log(CR_LOG_INFO,
            "perf new: %" PRIu64 " ns total, %" PRIu64 " ns/uuid, %" PRIu64

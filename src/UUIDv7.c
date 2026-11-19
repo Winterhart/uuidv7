@@ -22,7 +22,8 @@ static void nibble_map(const uint8_t *source, char *nZero, char *nOne) {
     *nOne = HEX_CHAR[(unsigned)*source & 0xFU];
 }
 
-uuidv7_error uuidv7_to_string(const uuidv7 *val, char *buf) {
+uuidv7_error uuidv7_to_string(const uuidv7 *val,
+                              char buf[restrict static UUIDV7_STRING_LEN]) {
     // no NULL ptr
     if (val == 0 || buf == 0) {
         return UUIDV7_ERR_NULL_PTR;

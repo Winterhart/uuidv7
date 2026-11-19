@@ -66,13 +66,43 @@ uuidv7_error uuidv7_new(uuidv7 *out) {
 
     // get entropy
     uint8_t entropy_buff[UUIDV7_ENTROPY_SIZE_LEN] = {0};
-    const uuidv7_error err = uuidv7_get_entropy(entropy_buff);
+    uuidv7_error err = uuidv7_get_entropy(entropy_buff);
 
     if (err != UUIDV7_OK) {
         return err;
     }
 
+    // entropy mapping
+    out->ver_rand_a[0] = (entropy_buff[0] & 0x0FU) | 0x70;
+    out->ver_rand_a[1] = entropy_buff[1];
+
+    out->var_rand_b[0] = (entropy_buff[2] & 0x3FU) | 0x80;
+    out->var_rand_b[1] = entropy_buff[3];
+    out->var_rand_b[2] = entropy_buff[4];
+    out->var_rand_b[3] = entropy_buff[5];
+    out->var_rand_b[4] = entropy_buff[6];
+    out->var_rand_b[5] = entropy_buff[7];
+    out->var_rand_b[6] = entropy_buff[8];
+    out->var_rand_b[7] = entropy_buff[9];
+
     // get timestamp
+    uint64_t clock_ms = 0;
+    err = uuidv7_clock_ms(&clock_ms);
+    if (err != UUIDV7_OK) {
+        return err;
+    }
+
+    // this libary expired in ~ 1000 years
+    if (clock_ms < 1737900000842 || clock_ms > 33294852000000) {
+        return UUIDV7_ERR_CLOCK;
+    }
+
+    out->unix_ts_ms[0] = (uint8_t)(clock_ms >> 40U);
+    out->unix_ts_ms[1] = (uint8_t)(clock_ms >> 32U);
+    out->unix_ts_ms[2] = (uint8_t)(clock_ms >> 24U);
+    out->unix_ts_ms[3] = (uint8_t)(clock_ms >> 16U);
+    out->unix_ts_ms[4] = (uint8_t)(clock_ms >> 8U);
+    out->unix_ts_ms[5] = (uint8_t)(clock_ms >> 0);
 
     return UUIDV7_OK;
 }

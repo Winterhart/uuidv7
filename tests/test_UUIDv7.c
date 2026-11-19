@@ -38,6 +38,15 @@ Test(uuidv7, string_len) {
     cr_assert_eq(UUIDV7_STRING_LEN, 37, "Must be 37 length");
 }
 
+Test(uuidv7, golden_new_uuidv7) {
+    uuidv7 data = {0};
+    const uuidv7_error err = uuidv7_new(&data);
+    cr_assert_eq(err, UUIDV7_OK);
+    char buff[UUIDV7_STRING_LEN] = {0};
+    cr_assert_eq(uuidv7_to_string(&data, buff), UUIDV7_OK);
+    cr_log(CR_LOG_INFO, "New UUID test, got string: %s", buff);
+}
+
 // RFC A6
 Test(uuidv7, golden_rfc_9562_a6) {
     char buff[UUIDV7_STRING_LEN] = {0};

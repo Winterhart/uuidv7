@@ -1,0 +1,84 @@
+name: CI
+
+# Public CI for the GitHub copy (Winterhart/uuidv7).
+# Cross-platform: compiles on Linux, macOS and Windows; runs the Criterion
+# test suite where Criterion is packaged (Linux/macOS). Lint stays on Linux.
+# The guard keeps this job from also firing on the Gitea server, which reads
+# .github/workflows/ too and has its own internal settings
+# (see .gitea/workflows/ci.yml).
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    if: ${{ startsWith(github.server_url, 'https://github.com') }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config libcriterion-dev
+
+      - name: Install toolchain (macOS)
+        if: matrix.os == 'macos-latest'
+        # Homebrew LLVM is not preinstalled on GitHub runners, so use the
+        # portable "default" preset with Apple Clang (not the Homebrew-clang
+        # preset the Makefile picks locally).
+        run: brew install cmake pkg-config criterion
+
+      - name: Configure (Linux / macOS)
+        if: matrix.os != 'windows-latest'
+        run: cmake --preset default
+
+      - name: Configure (Windows)
+        if: matrix.os == 'windows-latest'
+        # Criterion is not packaged for Windows (MSVC): build the library
+        # only, skip the test suite (-DUUIDV7_BUILD_TESTS=OFF).
+        run: cmake --preset default -DUUIDV7_BUILD_TESTS=OFF
+
+      - name: Build
+        run: cmake --build build
+
+      - name: Test
+        if: matrix.os != 'windows-latest'
+        run: ctest --test-dir build --output-on-failure
+
+  lint:
+    name: clang-tidy + clang-format
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.server_url, 'https://github.com') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config \
+            clang-format clang-tidy \
+            libcriterion-dev
+
+      - name: Configure
+        run: cmake --preset default
+
+      - name: clang-tidy
+        run: make tidy
+
+      - name: clang-format check
+        run: |
+          make format
+          git diff --exit-code -- . ':(exclude)build'

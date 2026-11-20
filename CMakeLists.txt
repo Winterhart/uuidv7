@@ -15,17 +15,23 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 
-# Warnings that apply to every target.
-add_compile_options(
-    -Wall
-    -Wextra
-    -Wpedantic
-    -Wconversion
-    -Wshadow
-    -Wformat=2
-    -Wundef
-    # -Werror is intentionally off; turn it on in CI when you're ready.
-)
+# Warnings that apply to every target. GCC/Clang and MSVC use different
+# flag vocabularies, so pick per-compiler (MSVC reads -Wextra as an invalid
+# warning-level number and hard-errors with D8021).
+if(MSVC)
+    add_compile_options(/W4)
+else()
+    add_compile_options(
+        -Wall
+        -Wextra
+        -Wpedantic
+        -Wconversion
+        -Wshadow
+        -Wformat=2
+        -Wundef
+        # -Werror is intentionally off; turn it on in CI when you're ready.
+    )
+endif()
 
 # ---- Targets ---------------------------------------------------------------
 # Add new executables/libraries here. Each .c/.cpp gets its own entry.

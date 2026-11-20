@@ -12,6 +12,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Max len of uuidv7 as a string */
 #define UUIDV7_STRING_LEN 37
 
@@ -43,4 +47,8 @@ uuidv7_error uuidv7_new(uuidv7 *out);
  * saves string of 37 cha\: 32 hex, 4 dash, 1 NUL in buffer
  */
 uuidv7_error uuidv7_to_string(const uuidv7 *val, char buf[UUIDV7_STRING_LEN]);
+
+#ifdef __cplusplus
+}
+#endif
 #endif /* UUIDV7_H */

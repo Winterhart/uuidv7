@@ -1,5 +1,8 @@
 # Contributing
 
+The main repository is hosted offline this is a mirror
+Your PR might be integrated to the offline repository and re-push to GitHub
+
 ## Build & verify
 
 - `cmake -B build -DCMAKE_BUILD_TYPE=Debug && cmake --build build && (cd build && ctest --output-on-failure)`

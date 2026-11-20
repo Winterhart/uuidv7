@@ -11,7 +11,11 @@ C Library for [UUIDv7](https://www.rfc-editor.org/info/rfc9562/)
 
 ## How AI was used?
 
-Mostly, for learning and setupping the workspace
+Mostly hybrid model:
+
+- The workflow scripts were generated
+- The `Makefiles` and C setup artifacts were generated
+- The core code and test was hand-written
 
 ## RFC
 

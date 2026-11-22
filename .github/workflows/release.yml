@@ -19,12 +19,14 @@ jobs:
       CMAKE_OSX_ARCHITECTURES: 'arm64;x86_64' # one universal binary
     steps:
       - uses: actions/checkout@v4
-      - run: brew install cmake pkg-config criterion
+      - run: brew install cmake
       - run: |
-          cmake --preset default -DCMAKE_BUILD_TYPE=Release
+          # Tests run natively in ci.yml: Homebrew criterion is arm64-only,
+          # so the test suite cannot link into a universal binary.
+          cmake --preset default -DCMAKE_BUILD_TYPE=Release -DUUIDV7_BUILD_TESTS=OFF
           cmake --build build
-          ctest --test-dir build --output-on-failure
           ./build/uuidv7 | grep -Eq '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-7[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$'
+          file build/uuidv7 | grep -q 'universal binary with 2 architectures'
           cp build/uuidv7 uuidv7-macos-universal
       - uses: actions/upload-artifact@v4
         with: {name: uuidv7-macos-universal, path: uuidv7-macos-universal, if-no-files-found: error}
@@ -32,19 +34,19 @@ jobs:
   build-linux:
     if: ${{ startsWith(github.server_url, 'https://github.com') }}
     runs-on: ${{ matrix.runner }}
-    container: alpine:latest # static musl: runs on any distro
     strategy:
       fail-fast: false
       matrix:
+        # musl-gcc from musl-tools: static binaries that run on any distro.
+        # (No Alpine container: JS actions can't run in Alpine on arm64.)
         include:
           - {arch: x86_64, runner: ubuntu-latest}
           - {arch: arm64, runner: ubuntu-24.04-arm}
     steps:
-      # nodejs+git are needed by actions/checkout inside the container
-      - run: apk add --no-cache build-base cmake git nodejs file
       - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends musl-tools
       - run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS=-static -DUUIDV7_BUILD_TESTS=OFF
+          CC=musl-gcc cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS=-static -DUUIDV7_BUILD_TESTS=OFF
           cmake --build build
           ./build/uuidv7 | grep -Eq '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-7[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$'
           file build/uuidv7 | grep -q 'statically linked'

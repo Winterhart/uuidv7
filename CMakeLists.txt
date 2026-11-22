@@ -37,6 +37,11 @@ endif()
 # Add new executables/libraries here. Each .c/.cpp gets its own entry.
 add_library(UUIDv7 src/UUIDv7.c src/platform.c)
 target_include_directories(UUIDv7 PUBLIC include)
+# platform.c calls BCryptGenRandom on Windows; the import lib (bcrypt.lib
+# on MSVC, -lbcrypt on MinGW) is not linked implicitly.
+if(WIN32)
+    target_link_libraries(UUIDv7 PRIVATE bcrypt)
+endif()
 # C++ target
 # add_executable(hello_cpp hello.cpp)
 # target_compile_features(hello_cpp PRIVATE cxx_std_20)

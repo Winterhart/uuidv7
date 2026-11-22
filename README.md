@@ -9,6 +9,46 @@ C Library for [UUIDv7](https://www.rfc-editor.org/info/rfc9562/)
 - Maps instead of loops
 - System does not use pre-gen entropy number
 
+## Install
+
+Prebuilt binaries for every release live on the [GitHub releases page](https://github.com/Winterhart/uuidv7/releases). Both installers verify the SHA-256 checksum published with the release before copying anything.
+
+**macOS / Linux**
+
+```
+curl -fsSL https://raw.githubusercontent.com/Winterhart/uuidv7/main/install.sh | sh
+```
+
+**Windows (PowerShell)**
+
+```
+irm https://raw.githubusercontent.com/Winterhart/uuidv7/main/install.ps1 | iex
+```
+
+Manual download: grab the binary for your platform from the [latest release](https://github.com/Winterhart/uuidv7/releases/latest) and check it against `SHA256SUMS`:
+
+```
+sha256sum uuidv7-linux-x86_64                       # Linux
+shasum -a 256 uuidv7-macos-universal               # macOS
+certutil -hashfile uuidv7-windows-x86_64.exe SHA256 # Windows
+```
+
+Every release binary is built by CI from the tagged commit and carries a
+[GitHub artifact attestation](https://docs.github.com/en/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds):
+
+```
+gh attestation verify uuidv7 --repo Winterhart/uuidv7
+```
+
+The Linux binaries are static (musl) and run on any distro; the macOS binary is universal (Apple Silicon + Intel).
+
+### Usage
+
+```
+$ uuidv7
+01A2013D-0237-729F-8F0A-1DFAD9FAD20D
+```
+
 ## How AI was used?
 
 Mostly hybrid model:

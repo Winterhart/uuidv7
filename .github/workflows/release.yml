@@ -1,0 +1,93 @@
+name: Release
+
+# Build, smoke-test and publish the release binaries for a v* tag.
+# GitHub mirror only — Gitea reads .github/workflows/ too (guard as in ci.yml).
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write # for artifact attestation
+  attestations: write
+
+jobs:
+  build-macos:
+    if: ${{ startsWith(github.server_url, 'https://github.com') }}
+    runs-on: macos-latest
+    env:
+      CMAKE_OSX_ARCHITECTURES: 'arm64;x86_64' # one universal binary
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install cmake pkg-config criterion
+      - run: |
+          cmake --preset default -DCMAKE_BUILD_TYPE=Release
+          cmake --build build
+          ctest --test-dir build --output-on-failure
+          ./build/uuidv7 | grep -Eq '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-7[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$'
+          cp build/uuidv7 uuidv7-macos-universal
+      - uses: actions/upload-artifact@v4
+        with: {name: uuidv7-macos-universal, path: uuidv7-macos-universal, if-no-files-found: error}
+
+  build-linux:
+    if: ${{ startsWith(github.server_url, 'https://github.com') }}
+    runs-on: ${{ matrix.runner }}
+    container: alpine:latest # static musl: runs on any distro
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {arch: x86_64, runner: ubuntu-latest}
+          - {arch: arm64, runner: ubuntu-24.04-arm}
+    steps:
+      # nodejs+git are needed by actions/checkout inside the container
+      - run: apk add --no-cache build-base cmake git nodejs file
+      - uses: actions/checkout@v4
+      - run: |
+          cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXE_LINKER_FLAGS=-static -DUUIDV7_BUILD_TESTS=OFF
+          cmake --build build
+          ./build/uuidv7 | grep -Eq '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-7[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$'
+          file build/uuidv7 | grep -q 'statically linked'
+          cp build/uuidv7 "uuidv7-linux-${{ matrix.arch }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uuidv7-linux-${{ matrix.arch }}
+          path: uuidv7-linux-${{ matrix.arch }}
+          if-no-files-found: error
+
+  build-windows:
+    if: ${{ startsWith(github.server_url, 'https://github.com') }}
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          cmake --preset default -DUUIDV7_BUILD_TESTS=OFF -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+          $exe = Get-ChildItem build -Recurse -Filter uuidv7.exe | Select-Object -First 1
+          if (-not $exe) { throw 'uuidv7.exe not found' }
+          $out = & $exe.FullName
+          if ($out -notmatch '^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-7[0-9A-Fa-f]{3}-[89ABab][0-9A-Fa-f]{3}-[0-9A-Fa-f]{12}$') { throw "not a UUIDv7: $out" }
+          Copy-Item $exe.FullName uuidv7-windows-x86_64.exe
+      - uses: actions/upload-artifact@v4
+        with: {name: uuidv7-windows-x86_64.exe, path: uuidv7-windows-x86_64.exe, if-no-files-found: error}
+
+  release:
+    if: ${{ startsWith(github.server_url, 'https://github.com') }}
+    needs: [build-macos, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: {path: dist, merge-multiple: true}
+      - run: cd dist && sha256sum uuidv7-* | tee SHA256SUMS
+      - uses: actions/attest-build-provenance@v2
+        with: {subject-path: 'dist/uuidv7-*'}
+      - uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            dist/uuidv7-*
+            dist/SHA256SUMS
+            install.sh
+            install.ps1

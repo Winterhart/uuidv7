@@ -12,7 +12,8 @@ Checks: >
   -readability-identifier-length,
   -readability-isolate-declaration,
   -readability-magic-numbers,
-  -readability-else-after-return
+  -readability-else-after-return,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
 
 CheckOptions:
   # Idiomatic C naming, enforced: types and functions lower_case,

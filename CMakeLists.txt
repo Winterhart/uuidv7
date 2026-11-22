@@ -41,6 +41,9 @@ target_include_directories(UUIDv7 PUBLIC include)
 # add_executable(hello_cpp hello.cpp)
 # target_compile_features(hello_cpp PRIVATE cxx_std_20)
 
+add_executable(uuidv7_cli src/main.c)
+set_target_properties(uuidv7_cli PROPERTIES OUTPUT_NAME uuidv7)
+target_link_libraries(uuidv7_cli PRIVATE UUIDv7)
 # ---- Tests -----------------------------------------------------------------
 # The suite needs Criterion, discovered via pkg-config — the distribution
 # channel Criterion is designed for (apt / brew / pacman / nix). Pass
